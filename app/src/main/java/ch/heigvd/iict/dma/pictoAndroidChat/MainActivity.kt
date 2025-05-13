@@ -1,4 +1,4 @@
-package ch.heigvd.iict.daa.template
+package ch.heigvd.iict.dma.pictoAndroidChat
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
@@ -9,3 +9,4 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
     }
 }
+

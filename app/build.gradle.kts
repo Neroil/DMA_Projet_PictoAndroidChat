@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "ch.heigvd.iict.daa.template"
+    namespace = "ch.heigvd.iict.dma.pictoAndroidChat"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "ch.heigvd.iict.daa.basictemplate"
+        applicationId = "ch.heigvd.iict.dma.basictemplate"
         minSdk = 26
         targetSdk = 34
         versionCode = 1
@@ -41,7 +41,10 @@ dependencies {
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
+    implementation(libs.gson)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+    implementation(libs.drawbox)
+    implementation(libs.play.services.nearby)
 }
