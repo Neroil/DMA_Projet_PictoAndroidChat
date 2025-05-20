@@ -6,11 +6,13 @@ data class Message(
     private var id: Int,
     private var sender: String,
     private var content: String,
-    private var timestamp: Int
+    private var timestamp: Int,
+    private var channelId: Int,
 ) {
 
-    constructor(sender: String, content: String) : this(getGlobalId(), sender, content,
-        System.currentTimeMillis().toInt())
+    // Constructor to send a message to any channel
+    constructor(sender: String, content: String, channelId: Int) : this(getGlobalId(), sender, content,
+        System.currentTimeMillis().toInt(), channelId)
 
     fun toByteArray(): ByteArray {
         val json = Gson().toJson(this)

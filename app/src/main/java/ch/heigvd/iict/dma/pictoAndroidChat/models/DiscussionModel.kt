@@ -1,22 +1,19 @@
 package ch.heigvd.iict.dma.pictoAndroidChat.models
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-
 class DiscussionModel {
-    private val _messages = MutableLiveData<List<Message>>(emptyList())
-    val messages: LiveData<List<Message>> = _messages
-
-    private val _currentChannel = MutableLiveData<ChannelInfo?>()
-    val currentChannel: LiveData<ChannelInfo?> = _currentChannel
+    private val messages = mutableListOf<Message>()
+    var localUserInfo: LocalUserInfo? = null
+    var currentChannel: ChannelInfo? = null
 
     fun addMessage(message: Message) {
-        val currentMessages = _messages.value?.toMutableList() ?: mutableListOf()
-        currentMessages.add(message)
-        _messages.value = currentMessages
+        messages.add(message)
+    }
+
+    fun getAllMessages(): List<Message> {
+        return messages.toList()
     }
 
     fun setChannel(channel: ChannelInfo) {
-        _currentChannel.value = channel
+        currentChannel = channel
     }
 }
