@@ -39,7 +39,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
-        nearbyService = NearbyService(applicationContext)
+        nearbyService = NearbyService(this)
         //nearbyService.startAdvertising()
         //nearbyService.startDiscovery()
     }

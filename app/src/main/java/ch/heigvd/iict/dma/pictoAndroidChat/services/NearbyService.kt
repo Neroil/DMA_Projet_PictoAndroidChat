@@ -20,32 +20,23 @@ import com.google.android.gms.nearby.connection.PayloadTransferUpdate
 import com.google.android.gms.nearby.connection.Strategy
 import java.util.Random
 
-
-class NearbyService {
+class NearbyService(var context: Context) {
 
     val serviceId = "dma_pictochat"
     val STRATEGY = Strategy.P2P_CLUSTER
-    val context: Context
     var username: String? = null
+        get() {
+            if (field == null) {
+                field = "User${Random().nextInt(10000)}"
+            }
+            return field!!
+        }
     var endpointId: String? = null
 
-    constructor(_context: Context){
-        context = _context
-    }
-
-    public fun setUsername(name: String){
-        username = name
-    }
-
-    public fun getUsername(): String{
-        if(username == null)
-            username = "User${Random().nextInt(10000)}"
-        return username!!
-    }
 
     public fun startAdvertising(){
         val options = AdvertisingOptions.Builder().setStrategy(STRATEGY).build()
-        Nearby.getConnectionsClient(context).startAdvertising(getUsername(), serviceId, connectionLifecycleCallback, options)
+        Nearby.getConnectionsClient(context).startAdvertising(username!!, serviceId, connectionLifecycleCallback, options)
             .addOnSuccessListener {
                 Log.d("NearbyService", "Advertising successfully started")
                 //Nearby.getConnectionsClient(context).stopAdvertising()
@@ -71,7 +62,7 @@ class NearbyService {
         override fun onEndpointFound(endpointId: String, info: DiscoveredEndpointInfo) {
             // An endpoint was found. We request a connection to it.
             Nearby.getConnectionsClient(context)
-                .requestConnection(getUsername(), endpointId, connectionLifecycleCallback)
+                .requestConnection(username!!, endpointId, connectionLifecycleCallback)
                 .addOnSuccessListener {
                     Log.d("NearbyService", "Connection successfully requested")
                 }
