@@ -23,6 +23,7 @@ class RoomFragment : FragmentActivity() {
                 bitmapCallback = { imageBitmap, error ->
                     imageBitmap?.let {
                        // TODO()
+
                     }
                 }
             )
