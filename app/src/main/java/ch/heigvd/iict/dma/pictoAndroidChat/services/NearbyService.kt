@@ -27,23 +27,28 @@ class NearbyService(var context: Context) {
     val STRATEGY = Strategy.P2P_CLUSTER
     var username: String? = null
         get()  {
-            if(username == null)
-                username = "User${Random().nextInt(10000)}"
-            return username!!
+            if(field == null)
+                field = "User${Random().nextInt(10000)}"
+            return field!!
         }
     var endpointId: String? = null
 
 
     public fun startAdvertising(){
-        val options = AdvertisingOptions.Builder().setStrategy(STRATEGY).build()
-        Nearby.getConnectionsClient(context).startAdvertising(username!!, serviceId, connectionLifecycleCallback, options)
-            .addOnSuccessListener {
-                Log.d("NearbyService", "Advertising successfully started")
-                //Nearby.getConnectionsClient(context).stopAdvertising()
-            }
-            .addOnFailureListener {
-                Log.d("NearbyService", "Advertising failed ${it.message}")
-            }
+        try {
+            val options = AdvertisingOptions.Builder().setStrategy(STRATEGY).build()
+            Nearby.getConnectionsClient(context).startAdvertising(username!!, serviceId, connectionLifecycleCallback, options)
+                .addOnSuccessListener {
+                    Log.d("NearbyService", "Advertising successfully started")
+                    //Nearby.getConnectionsClient(context).stopAdvertising()
+                }
+                .addOnFailureListener {
+                    Log.d("NearbyService", "Advertising failed ${it.message}")
+                }
+        } catch (e: Exception) {
+            Log.d("NearbyService", "Advertising failed ${e.message}")
+        }
+
     }
 
     public fun startDiscovery(){
