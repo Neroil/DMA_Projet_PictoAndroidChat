@@ -14,101 +14,65 @@ import kotlin.collections.filter
 import kotlin.collections.isNotEmpty
 import kotlin.collections.toTypedArray
 import android.util.Log
+import android.widget.Toast
+import androidx.lifecycle.MutableLiveData
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var nearbyService: NearbyService
     private lateinit var requestPermissionsLauncher: ActivityResultLauncher<Array<String>>
+    private val permissionsGranted = MutableLiveData(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         // we request permissions
-        requestPermissionsLauncher =
-            registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
-                var allPermissionsGranted = true
-                permissions.entries.forEach {
-                    if (!it.value) {
-                        allPermissionsGranted = false
-                        // Log or inform the user that a specific permission was denied
-                        Log.w("Permissions", "Permission denied: ${it.key}")
-                    }
-                }
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            requestNearbyPermissionLauncher.launch(arrayOf(
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION,
+                Manifest.permission.BLUETOOTH_SCAN,
+                Manifest.permission.BLUETOOTH_CONNECT,
+                Manifest.permission.BLUETOOTH_ADVERTISE))
+        }
+        else {
+            requestNearbyPermissionLauncher.launch(arrayOf(
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION))
+        }
 
-                if (allPermissionsGranted) {
-                    // All required permissions are granted, proceed with Nearby operations
-                    Log.d("Permissions", "All required permissions were granted.")
-                } else {
-                    // Not all permissions were granted.
-                    // You might want to show a dialog explaining why the permissions are needed
-                    // or disable the functionality that depends on these permissions.
-                    Log.e("Permissions", "Not all required permissions were granted.")
-                    // Example: show a snackbar or dialog
-                    // Snackbar.make(findViewById(android.R.id.content), "Required permissions were not granted.", Snackbar.LENGTH_LONG).show()
-                }
-            }
 
-        checkAndRequestNearbyPermissions()
     }
     override fun onStart() {
         super.onStart()
         nearbyService = NearbyService(this)
-        nearbyService.startDiscovery()
-    }
-
-    private fun checkAndRequestNearbyPermissions() {
-        val requiredPermissions = getRequiredPermissions()
-
-        val permissionsToRequest = requiredPermissions.filter {
-            ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
-        }.toTypedArray()
-
-        if (permissionsToRequest.isNotEmpty()) {
-            requestPermissionsLauncher.launch(permissionsToRequest)
-        } else {
-            // All permissions are already granted
-            //startNearbyOperations()
-            Log.d("Permissions", "All required permissions were granted.")
+        permissionsGranted.observe(this) { granted ->
+            if (granted)
+                nearbyService.startDiscovery()
         }
     }
 
-    private fun getRequiredPermissions(): List<String> {
-        val permissions = mutableListOf<String>()
+    private val requestNearbyPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
 
-        // Wi-Fi State Permissions (up to Android 12 - API 31)
-        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.S_V2) {
-            permissions.add(Manifest.permission.ACCESS_WIFI_STATE)
-            permissions.add(Manifest.permission.CHANGE_WIFI_STATE)
-        }
+        val isBLEScanGranted =  if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+            permissions.getOrDefault(Manifest.permission.BLUETOOTH_SCAN, false)
+        else
+            true
+        val isFineLocationGranted = permissions.getOrDefault(Manifest.permission.ACCESS_FINE_LOCATION, false)
+        val isCoarseLocationGranted = permissions.getOrDefault(Manifest.permission.ACCESS_COARSE_LOCATION, false)
 
-        // Classic Bluetooth Permissions (up to Android 11 - API 30)
-        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.R) {
-            permissions.add(Manifest.permission.BLUETOOTH)
-            permissions.add(Manifest.permission.BLUETOOTH_ADMIN)
-        }
+        if (isBLEScanGranted && (isFineLocationGranted || isCoarseLocationGranted) ) {
+            // Permission is granted. Continue the action
+            permissionsGranted.postValue(true)
 
-        // Location Permissions
-        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) { // Android 9 (API 28) and below
-            permissions.add(Manifest.permission.ACCESS_COARSE_LOCATION)
-        } else if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.S_V2) { // Android 10 (API 29) to Android 12 (API 31)
-            permissions.add(Manifest.permission.ACCESS_FINE_LOCATION)
         }
-        // For Android 12 (API 31) and above, BLUETOOTH_SCAN (if used for location) requires ACCESS_FINE_LOCATION.
-        // The Nearby Connections library often handles this, but it's good to be aware.
-        // New Bluetooth Permissions (Android 12 - API 31 and above)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            permissions.add(Manifest.permission.BLUETOOTH_ADVERTISE)
-            permissions.add(Manifest.permission.BLUETOOTH_CONNECT)
-            permissions.add(Manifest.permission.BLUETOOTH_SCAN)
+        else {
+            // Explain to the user that the feature is unavailable
+            Toast.makeText(this, "haaaaaaaaaaaaaa", Toast.LENGTH_SHORT).show()
+            permissionsGranted.postValue(false)
         }
-
-        // Nearby Wi-Fi Devices (Android 13 - API 32 and above)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            permissions.add(Manifest.permission.NEARBY_WIFI_DEVICES)
-        }
-
-        return permissions.distinct() // Ensure no duplicates if logic overlaps
     }
-    }
+
+}
 
