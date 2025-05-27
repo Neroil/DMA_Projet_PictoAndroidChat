@@ -12,10 +12,10 @@
         app:layout_constraintBottom_toTopOf="@id/canva"
         />
 
-    <FrameLayout
+    <androidx.compose.ui.platform.ComposeView
         android:id="@+id/canva"
         android:layout_width="match_parent"
-        android:layout_height="300dp"
+        android:layout_height="200dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintBottom_toTopOf="@id/input_text"
         />
