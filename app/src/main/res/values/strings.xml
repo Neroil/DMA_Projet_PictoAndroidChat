@@ -1,4 +1,5 @@
 <resources>
-    <string name="app_name">Picto Android Chat</string>
-    <string name="welcome">Welcome to DMA!</string>
+    <string name="welcome">Bienvenue dans PictoAndroidChat !</string>
+    <string name="host">Host</string>
+    <string name="join">Join</string>
 </resources>
