@@ -9,14 +9,21 @@ data class ChannelInfo(
     val name: String,
     val currentUsers: Int,
     val maxUsers: Int,
-    val hostId: String
+    val id: Int
 ) {
     fun toByteArray(): ByteArray {
         val json = Gson().toJson(this)
         return json.toByteArray()
     }
 
+    constructor(name: String, currentUsers: Int, maxUsers: Int) : this(name, currentUsers, maxUsers, getGlobalId())
+
     companion object {
+
+        private var globalLocalId: Int = 0
+        fun getGlobalId(): Int {
+            return globalLocalId++
+        }
         fun fromByteArray(bytes: ByteArray): ChannelInfo? {
             return try {
                 val json = String(bytes)
