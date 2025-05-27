@@ -27,22 +27,29 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        val permissions = mutableListOf(Manifest.permission.ACCESS_WIFI_STATE,
+            Manifest.permission.CHANGE_WIFI_STATE,
+            Manifest.permission.ACCESS_COARSE_LOCATION)
+
         // we request permissions
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            requestNearbyPermissionLauncher.launch(arrayOf(
-                Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION,
-                Manifest.permission.BLUETOOTH_SCAN,
-                Manifest.permission.BLUETOOTH_CONNECT,
-                Manifest.permission.BLUETOOTH_ADVERTISE))
+            permissions += Manifest.permission.ACCESS_FINE_LOCATION
+            permissions += Manifest.permission.BLUETOOTH_SCAN
+            permissions += Manifest.permission.BLUETOOTH_CONNECT
+            permissions += Manifest.permission.BLUETOOTH_ADVERTISE
+
         }
         else {
-            requestNearbyPermissionLauncher.launch(arrayOf(
-                Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION))
+
+            permissions += Manifest.permission.BLUETOOTH
+            permissions += Manifest.permission.BLUETOOTH_ADMIN
+
         }
 
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S_V2)
+            permissions += Manifest.permission.NEARBY_WIFI_DEVICES
 
+        requestNearbyPermissionLauncher.launch(permissions.toTypedArray())
     }
     override fun onStart() {
         super.onStart()
@@ -55,14 +62,28 @@ class MainActivity : AppCompatActivity() {
 
     private val requestNearbyPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
 
-        val isBLEScanGranted =  if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
-            permissions.getOrDefault(Manifest.permission.BLUETOOTH_SCAN, false)
+        val grantedBase = permissions.getOrDefault(Manifest.permission.ACCESS_WIFI_STATE, false) &&
+                permissions.getOrDefault(Manifest.permission.CHANGE_WIFI_STATE, false) &&
+                permissions.getOrDefault(Manifest.permission.ACCESS_COARSE_LOCATION, false)
+
+
+
+        val granted31 = if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+            permissions.getOrDefault(Manifest.permission.BLUETOOTH_SCAN, false) &&
+                    permissions.getOrDefault(Manifest.permission.BLUETOOTH_ADVERTISE, false) &&
+                    permissions.getOrDefault(Manifest.permission.BLUETOOTH_CONNECT, false) &&
+                    permissions.getOrDefault(Manifest.permission.ACCESS_FINE_LOCATION, false) &&
+                    permissions.getOrDefault(Manifest.permission.ACCESS_WIFI_STATE, false)
+        else
+            permissions.getOrDefault(Manifest.permission.BLUETOOTH, false) &&
+                    permissions.getOrDefault(Manifest.permission.BLUETOOTH_ADMIN, false)
+
+        val granted32 = if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S_V2)
+            permissions.getOrDefault(Manifest.permission.NEARBY_WIFI_DEVICES, false)
         else
             true
-        val isFineLocationGranted = permissions.getOrDefault(Manifest.permission.ACCESS_FINE_LOCATION, false)
-        val isCoarseLocationGranted = permissions.getOrDefault(Manifest.permission.ACCESS_COARSE_LOCATION, false)
 
-        if (isBLEScanGranted && (isFineLocationGranted || isCoarseLocationGranted) ) {
+        if (grantedBase && granted31 && granted32) {
             // Permission is granted. Continue the action
             permissionsGranted.postValue(true)
 
