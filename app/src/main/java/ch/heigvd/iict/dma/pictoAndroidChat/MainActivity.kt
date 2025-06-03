@@ -72,7 +72,7 @@ class MainActivity : AppCompatActivity() {
 
         val messageObserver = Observer<List<Message>> { messages->
             // Update the UI, in this case, a TextView.
-            if(!messages.isEmpty())
+            if(!messages.isEmpty() )
                 Toast.makeText(this, "Msg: ${ messages.last()}, Size: ${messages.size}", Toast.LENGTH_SHORT).show()
         }
 
