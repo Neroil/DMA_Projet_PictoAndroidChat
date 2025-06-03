@@ -1,5 +1,6 @@
 package ch.heigvd.iict.dma.pictoAndroidChat
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -9,7 +10,7 @@ import ch.heigvd.iict.dma.pictoAndroidChat.models.LocalUserInfo
 import ch.heigvd.iict.dma.pictoAndroidChat.models.Message
 import ch.heigvd.iict.dma.pictoAndroidChat.services.NearbyService
 
-class DiscussionViewModel : ViewModel() {
+class DiscussionViewModel(val nearbyService : NearbyService) : ViewModel() {
 
     // Connection states
     enum class ConnectionState {
@@ -18,7 +19,6 @@ class DiscussionViewModel : ViewModel() {
 
     // Model instance
     private val discussionModel = DiscussionModel()
-    //private val nearbyService = NearbyService()
 
     // Private LiveData
     private val _messages = MutableLiveData<List<Message>>(emptyList())
@@ -47,9 +47,11 @@ class DiscussionViewModel : ViewModel() {
         _localUserInfo.value = discussionModel.localUserInfo
     }
 
+    /*
     private fun refreshChannel() {
         _currentChannel.value = discussionModel.currentChannel
     }
+    */
 
     fun setUsername(name: String) {
         discussionModel.localUserInfo = LocalUserInfo(name)
@@ -58,24 +60,23 @@ class DiscussionViewModel : ViewModel() {
 
     fun hostChannel(channelName: String, maxUsers: Int) {
         try {
-            val channel = ChannelInfo(channelName, 1, maxUsers)
-            discussionModel.setChannel(channel)
-            refreshChannel()
-            _connectionState.value = ConnectionState.HOSTING
-            //nearbyService.host()
-            // TODO: Broadcast channel info
+            nearbyService.startAdvertising()
+            _connectionState.postValue(ConnectionState.CONNECTED)
         } catch (e: Exception) {
             _errorState.value = "Failed to host channel: ${e.message}"
         }
     }
 
     fun scanForChannels() {
-        _connectionState.value = ConnectionState.SCANNING
+        _connectionState.postValue(ConnectionState.SCANNING)
         // Implementation for scanning would update _availableChannels when found
-        // TODO: Implement channel scanning using NearbyService
-
+        nearbyService.setOnConnectionEstablishedListener {
+            _connectionState.postValue(ConnectionState.CONNECTED)
+        }
+        nearbyService.startDiscovery()
     }
-
+    
+    /*
     fun joinChannel(channel: ChannelInfo) {
         try {
             discussionModel.setChannel(channel)
@@ -87,29 +88,23 @@ class DiscussionViewModel : ViewModel() {
             _connectionState.value = ConnectionState.DISCONNECTED
         }
     }
+    */
 
     fun sendMessage(content: String) {
         val username = discussionModel.localUserInfo?.name ?: "Unknown"
-        val channelId = discussionModel.currentChannel?.id
-
-        if (channelId != null) {
-            try {
-                val message = Message(username, content, channelId)
-                discussionModel.addMessage(message)
-                refreshMessages()
-                // TODO: Broadcast message to other users using NearbyService
-            } catch (e: Exception) {
-                _errorState.value = "Failed to send message: ${e.message}"
-            }
-        } else {
-            _errorState.value = "Cannot send message: Not connected to a channel"
-        }
+        //val channelId = discussionModel.currentChannel?.id
+        val message = Message(username, content)
+        discussionModel.addMessage(message)
+        refreshMessages()
+        nearbyService.sendPayload(message.toByteArray())
     }
-
-    fun addMessage(message: Message) {
+    
+    fun receiveMessage(byteMessage: ByteArray) {
+        val message = Message.fromByteArray(byteMessage) ?: return
         discussionModel.addMessage(message)
         refreshMessages()
     }
+    
 
     fun updateDrawing(drawingData: ByteArray) {
         _currentDrawing.value = drawingData

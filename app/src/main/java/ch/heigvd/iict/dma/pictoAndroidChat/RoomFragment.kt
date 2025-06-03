@@ -14,19 +14,7 @@ class RoomFragment : FragmentActivity() {
         super.onCreate(savedInstanceState, persistentState)
         setContentView(R.layout.activity_room)
         
-        val canva = findViewById<ComposeView>(R.id.canva)
-        canva.setContent {
-            val controller = rememberDrawController()
 
-            DrawBox(
-                drawController = controller, modifier = Modifier.fillMaxSize(),
-                bitmapCallback = { imageBitmap, error ->
-                    imageBitmap?.let {
-                       // TODO()
-                    }
-                }
-            )
-        }
 
     }
 }

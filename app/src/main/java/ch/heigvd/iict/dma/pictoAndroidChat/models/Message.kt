@@ -7,16 +7,19 @@ data class Message(
     private var sender: String,
     private var content: String,
     private var timestamp: Int,
-    private var channelId: Int,
 ) {
 
     // Constructor to send a message to any channel
-    constructor(sender: String, content: String, channelId: Int) : this(getGlobalId(), sender, content,
-        System.currentTimeMillis().toInt(), channelId)
+    constructor(sender: String, content: String) : this(getGlobalId(), sender, content,
+        System.currentTimeMillis().toInt())
 
     fun toByteArray(): ByteArray {
         val json = Gson().toJson(this)
         return json.toByteArray()
+    }
+
+    override fun toString(): String {
+        return this.content
     }
 
     companion object {

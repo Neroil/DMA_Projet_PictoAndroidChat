@@ -3,37 +3,29 @@ package ch.heigvd.iict.dma.pictoAndroidChat
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import android.Manifest
+import android.content.Intent
 import android.os.Build
+import android.util.Log
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.result.ActivityResultLauncher
 import ch.heigvd.iict.dma.pictoAndroidChat.services.NearbyService
 import kotlin.collections.toTypedArray
-import android.util.Log
 import android.widget.Button
 import android.widget.Toast
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Observer
+import ch.heigvd.iict.dma.pictoAndroidChat.DiscussionViewModel.ConnectionState
+import ch.heigvd.iict.dma.pictoAndroidChat.models.Message
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var nearbyService: NearbyService
-    private lateinit var requestPermissionsLauncher: ActivityResultLauncher<Array<String>>
     private val permissionsGranted = MutableLiveData(false)
+    private lateinit var discussionViewModel: DiscussionViewModel
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
-        findViewById<Button>(R.id.host_button).setOnClickListener {
-            nearbyService.startAdvertising()
-        }
-
-        findViewById<Button>(R.id.join_button).setOnClickListener {
-            nearbyService.startDiscovery()
-        }
-
-        findViewById<Button>(R.id.send).setOnClickListener {
-            nearbyService.sendPayload("Mon message".toByteArray())
-        }
 
         val permissions = mutableListOf(Manifest.permission.ACCESS_WIFI_STATE,
             Manifest.permission.CHANGE_WIFI_STATE,
@@ -58,10 +50,58 @@ class MainActivity : AppCompatActivity() {
             permissions += Manifest.permission.NEARBY_WIFI_DEVICES
 
         requestNearbyPermissionLauncher.launch(permissions.toTypedArray())
+
+
     }
     override fun onStart() {
         super.onStart()
+
+        // Crée les services et viewmodels
         nearbyService = NearbyService(this)
+        discussionViewModel = DiscussionViewModel(nearbyService)
+
+        // Assigne les listeners aux boutons
+        findViewById<Button>(R.id.host_button).setOnClickListener {
+            discussionViewModel.hostChannel("channel1", 10)
+        }
+
+        findViewById<Button>(R.id.join_button).setOnClickListener {
+            discussionViewModel.scanForChannels()
+        }
+
+        findViewById<Button>(R.id.send).setOnClickListener {
+            discussionViewModel.sendMessage("Hello zebi")
+        }
+
+        // Défini le callback pour les messages reçus
+        nearbyService.setOnMessageReceivedListener {
+            discussionViewModel.receiveMessage(it)
+        }
+
+        // Observe les messages reçus (pour test)
+        val messageObserver = Observer<List<Message>> { messages->
+            // Update the UI, in this case, a TextView.
+            if(!messages.isEmpty() )
+                Toast.makeText(this, "Msg: ${ messages.last()}, Size: ${messages.size}", Toast.LENGTH_SHORT).show()
+        }
+
+        discussionViewModel.messages.observe(this, messageObserver)
+
+        // Observe les changements de connexion
+        val connectionObserver = Observer<ConnectionState> { state ->
+            Log.d("MainActivity", "Connection state changed to $state")
+            when (state) {
+                ConnectionState.CONNECTED -> {
+                    val i = Intent(this , DiscussionActivity::class.java)
+                    startActivity(i)
+                }
+
+                else -> {}
+            }
+        }
+
+        discussionViewModel.connectionState.observe(this, connectionObserver)
+        Log.d("MainActivity", "onStart")
     }
 
     private val requestNearbyPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
