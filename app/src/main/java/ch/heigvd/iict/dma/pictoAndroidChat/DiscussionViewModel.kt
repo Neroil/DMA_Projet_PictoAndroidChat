@@ -75,7 +75,7 @@ class DiscussionViewModel(val nearbyService : NearbyService) : ViewModel() {
         }
         nearbyService.startDiscovery()
     }
-    
+
     /*
     fun joinChannel(channel: ChannelInfo) {
         try {
@@ -93,18 +93,18 @@ class DiscussionViewModel(val nearbyService : NearbyService) : ViewModel() {
     fun sendMessage(content: String) {
         val username = discussionModel.localUserInfo?.name ?: "Unknown"
         //val channelId = discussionModel.currentChannel?.id
-        val message = Message(username, content)
+        val message = Message.createTextMessage(username, content)
         discussionModel.addMessage(message)
         refreshMessages()
         nearbyService.sendPayload(message.toByteArray())
     }
-    
+
     fun receiveMessage(byteMessage: ByteArray) {
         val message = Message.fromByteArray(byteMessage) ?: return
         discussionModel.addMessage(message)
         refreshMessages()
     }
-    
+
 
     fun updateDrawing(drawingData: ByteArray) {
         _currentDrawing.value = drawingData
