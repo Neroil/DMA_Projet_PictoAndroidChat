@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace = "ch.heigvd.iict.dma.pictoAndroidChat"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "ch.heigvd.iict.dma.basictemplate"
@@ -37,8 +37,8 @@ android {
 
 dependencies {
     implementation(libs.ui)
-    implementation(libs.androidx.material3)
-    implementation(libs.androidx.ui.tooling.preview)
+    //implementation(libs.androidx.material3)
+    //implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.ui.ui)
     implementation(libs.androidx.core.ktx)
