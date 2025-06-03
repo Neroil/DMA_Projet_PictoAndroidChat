@@ -42,7 +42,7 @@ android {
 dependencies {
     implementation(libs.ui)
     //implementation(libs.androidx.material3)
-    implementation(libs.androidx.ui.tooling.preview)
+    //implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.ui.ui)
     implementation(libs.androidx.core.ktx)
