@@ -58,7 +58,7 @@ class MainActivity : AppCompatActivity() {
 
         // Crée les services et viewmodels
         nearbyService = NearbyService.get(this)
-        discussionViewModel = DiscussionViewModel(nearbyService)
+        discussionViewModel = DiscussionViewModel.get(nearbyService)
 
         // Assigne les listeners aux boutons
         findViewById<Button>(R.id.host_button).setOnClickListener {

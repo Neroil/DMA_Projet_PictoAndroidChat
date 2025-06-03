@@ -1,5 +1,6 @@
 package ch.heigvd.iict.dma.pictoAndroidChat
 
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -27,7 +28,8 @@ class DiscussionViewModel(val nearbyService : NearbyService) : ViewModel() {
     private val _availableChannels = MutableLiveData<List<ChannelInfo>>(emptyList())
     private val _connectionState = MutableLiveData<ConnectionState>(ConnectionState.DISCONNECTED)
     private val _currentDrawing = MutableLiveData<ByteArray?>(null)
-    private val _errorState = MutableLiveData<String?>(null) // Used to communicate errors to the UI (Toasts)
+    private val _errorState =
+        MutableLiveData<String?>(null) // Used to communicate errors to the UI (Toasts)
 
     // Public LiveData exposed to the UI
     val messages: LiveData<List<Message>> = _messages
@@ -75,7 +77,7 @@ class DiscussionViewModel(val nearbyService : NearbyService) : ViewModel() {
         }
         nearbyService.startDiscovery()
     }
-    
+
     /*
     fun joinChannel(channel: ChannelInfo) {
         try {
@@ -98,13 +100,13 @@ class DiscussionViewModel(val nearbyService : NearbyService) : ViewModel() {
         refreshMessages()
         nearbyService.sendPayload(message.toByteArray())
     }
-    
+
     fun receiveMessage(byteMessage: ByteArray) {
         val message = Message.fromByteArray(byteMessage) ?: return
         discussionModel.addMessage(message)
         refreshMessages()
     }
-    
+
 
     fun updateDrawing(drawingData: ByteArray) {
         _currentDrawing.value = drawingData
@@ -123,5 +125,19 @@ class DiscussionViewModel(val nearbyService : NearbyService) : ViewModel() {
     override fun onCleared() {
         super.onCleared()
         disconnect()
+    }
+
+    companion object {
+        private var instance: DiscussionViewModel? = null
+        fun get(nearby: NearbyService? = null): DiscussionViewModel {
+            if (instance == null) {
+                if (nearby != null)
+                    instance = DiscussionViewModel(nearby)
+                else
+                    throw Exception("Neaby is null")
+            }
+
+            return instance!!
+        }
     }
 }
