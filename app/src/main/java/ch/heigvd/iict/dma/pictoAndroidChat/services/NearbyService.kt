@@ -4,6 +4,7 @@ import android.R
 import android.content.Context
 import android.content.DialogInterface
 import android.util.Log
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog.Builder
 import com.google.android.gms.nearby.Nearby
 import com.google.android.gms.nearby.connection.*
@@ -130,6 +131,7 @@ class NearbyService(var context: Context) {
             if (payload.getType() == Payload.Type.BYTES) {
                 val receivedBytes = payload.asBytes()
                 Log.d("NearbyService", "Received bytes: " + String(receivedBytes!!))
+                Toast.makeText(context, "Received bytes: " + String(receivedBytes!!), Toast.LENGTH_SHORT).show()
 
                 if (isHost){
                     // Send the received bytes to the other devices

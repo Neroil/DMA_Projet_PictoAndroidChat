@@ -2,4 +2,5 @@
     <string name="welcome">Bienvenue dans PictoAndroidChat !</string>
     <string name="host">Host</string>
     <string name="join">Join</string>
+    <string name="app_name">PictoChat</string>
 </resources>

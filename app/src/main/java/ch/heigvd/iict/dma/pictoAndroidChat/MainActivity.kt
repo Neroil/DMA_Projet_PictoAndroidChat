@@ -3,17 +3,13 @@ package ch.heigvd.iict.dma.pictoAndroidChat
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import android.Manifest
-import android.content.pm.PackageManager
 import android.os.Build
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.launch
-import androidx.core.content.ContextCompat
 import ch.heigvd.iict.dma.pictoAndroidChat.services.NearbyService
-import kotlin.collections.filter
-import kotlin.collections.isNotEmpty
 import kotlin.collections.toTypedArray
 import android.util.Log
+import android.widget.Button
 import android.widget.Toast
 import androidx.lifecycle.MutableLiveData
 
@@ -26,6 +22,18 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        findViewById<Button>(R.id.host_button).setOnClickListener {
+            nearbyService.startAdvertising()
+        }
+
+        findViewById<Button>(R.id.join_button).setOnClickListener {
+            nearbyService.startDiscovery()
+        }
+
+        findViewById<Button>(R.id.send).setOnClickListener {
+            nearbyService.sendPayload("Mon message".toByteArray())
+        }
 
         val permissions = mutableListOf(Manifest.permission.ACCESS_WIFI_STATE,
             Manifest.permission.CHANGE_WIFI_STATE,
@@ -54,10 +62,6 @@ class MainActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
         nearbyService = NearbyService(this)
-        permissionsGranted.observe(this) { granted ->
-            if (granted)
-                nearbyService.startDiscovery()
-        }
     }
 
     private val requestNearbyPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
