@@ -57,7 +57,7 @@ class MainActivity : AppCompatActivity() {
         super.onStart()
 
         // Crée les services et viewmodels
-        nearbyService = NearbyService(this)
+        nearbyService = NearbyService.get(this)
         discussionViewModel = DiscussionViewModel(nearbyService)
 
         // Assigne les listeners aux boutons

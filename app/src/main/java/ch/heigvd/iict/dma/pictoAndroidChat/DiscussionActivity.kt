@@ -5,10 +5,14 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
+import ch.heigvd.iict.dma.pictoAndroidChat.services.NearbyService
 import io.ak1.drawbox.DrawBox
 import io.ak1.drawbox.rememberDrawController
 
 class DiscussionActivity : AppCompatActivity() {
+
+    private lateinit var nearbyService: NearbyService
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_room)
@@ -26,5 +30,10 @@ class DiscussionActivity : AppCompatActivity() {
                 }
             )
         }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        nearbyService = NearbyService.get(this)
     }
 }
