@@ -4,20 +4,10 @@ import android.R
 import android.content.Context
 import android.content.DialogInterface
 import android.util.Log
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog.Builder
 import com.google.android.gms.nearby.Nearby
-import com.google.android.gms.nearby.connection.AdvertisingOptions
-import com.google.android.gms.nearby.connection.ConnectionInfo
-import com.google.android.gms.nearby.connection.ConnectionLifecycleCallback
-import com.google.android.gms.nearby.connection.ConnectionResolution
-import com.google.android.gms.nearby.connection.ConnectionsStatusCodes
-import com.google.android.gms.nearby.connection.DiscoveredEndpointInfo
-import com.google.android.gms.nearby.connection.DiscoveryOptions
-import com.google.android.gms.nearby.connection.EndpointDiscoveryCallback
-import com.google.android.gms.nearby.connection.Payload
-import com.google.android.gms.nearby.connection.PayloadCallback
-import com.google.android.gms.nearby.connection.PayloadTransferUpdate
-import com.google.android.gms.nearby.connection.Strategy
+import com.google.android.gms.nearby.connection.*
 import java.util.Random
 
 
@@ -31,8 +21,9 @@ class NearbyService(var context: Context) {
                 field = "User${Random().nextInt(10000)}"
             return field!!
         }
-    var endpointId: String? = null
 
+    var endpointIds: Set<String> = emptySet()
+    var isHost: Boolean = false
 
     public fun startAdvertising(){
         try {
@@ -40,6 +31,7 @@ class NearbyService(var context: Context) {
             Nearby.getConnectionsClient(context).startAdvertising(username!!, serviceId, connectionLifecycleCallback, options)
                 .addOnSuccessListener {
                     Log.d("NearbyService", "Advertising successfully started")
+                    isHost = true
                     //Nearby.getConnectionsClient(context).stopAdvertising()
                 }
                 .addOnFailureListener {
@@ -70,6 +62,7 @@ class NearbyService(var context: Context) {
                 .requestConnection(username!!, endpointId, connectionLifecycleCallback)
                 .addOnSuccessListener {
                     Log.d("NearbyService", "Connection successfully requested")
+                    Nearby.getConnectionsClient(context).stopDiscovery()
                 }
                 .addOnFailureListener {
                     Log.d("NearbyService", "Connection failed")
@@ -102,17 +95,23 @@ class NearbyService(var context: Context) {
                 .show()
         }
 
-        override fun onConnectionResult(_endpointId: String, result: ConnectionResolution) {
+        override fun onConnectionResult(endpointId: String, result: ConnectionResolution) {
             when (result.status.statusCode) {
                 ConnectionsStatusCodes.STATUS_OK -> {
                     Log.d("NearbyService", "Connection successfully established")
-                    endpointId = _endpointId
+                    endpointIds +=  endpointId
                 }
                 ConnectionsStatusCodes.STATUS_CONNECTION_REJECTED -> {
                     Log.d("NearbyService", "Connection rejected")
+                    if(!isHost){
+                        startDiscovery()
+                    }
                 }
                 ConnectionsStatusCodes.STATUS_ERROR -> {
                     Log.d("NearbyService", "Connection error")
+                    if(!isHost){
+                        startDiscovery()
+                    }
                 }
                 else -> {}
             }
@@ -122,6 +121,7 @@ class NearbyService(var context: Context) {
             // We've been disconnected from this endpoint. No more data can be
             // sent or received.
             Log.d("NearbyService", "Disconnected")
+            endpointIds -= endpointId
         }
     }
 
@@ -131,6 +131,16 @@ class NearbyService(var context: Context) {
             if (payload.getType() == Payload.Type.BYTES) {
                 val receivedBytes = payload.asBytes()
                 Log.d("NearbyService", "Received bytes: " + String(receivedBytes!!))
+                Toast.makeText(context, "Received bytes: " + String(receivedBytes!!), Toast.LENGTH_SHORT).show()
+
+                if (isHost){
+                    // Send the received bytes to the other devices
+                    endpointIds.forEach { otherEndpointId ->
+                        if (otherEndpointId != endpointId) {
+                            Nearby.getConnectionsClient(context).sendPayload(otherEndpointId, payload)
+                        }
+                    }
+                }
             }
         }
 
@@ -141,11 +151,13 @@ class NearbyService(var context: Context) {
     }
 
     public fun sendPayload(payload: ByteArray){
-        if(endpointId == null){
-            Log.d("NearbyService", "Endpoint id is null")
+        if(endpointIds.isEmpty()){
+            Log.d("NearbyService", "No devices connected")
             return
         }
         val bytesPayload = Payload.fromBytes(payload)
-        Nearby.getConnectionsClient(context).sendPayload(endpointId!!, bytesPayload)
+        endpointIds.forEach { endpointId ->
+            Nearby.getConnectionsClient(context).sendPayload(endpointId, bytesPayload)
+        }
     }
 }

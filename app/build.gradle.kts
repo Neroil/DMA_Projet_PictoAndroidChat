@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace = "ch.heigvd.iict.dma.pictoAndroidChat"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "ch.heigvd.iict.dma.basictemplate"
@@ -15,6 +15,10 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildFeatures {
+        viewBinding = true
     }
 
     buildTypes {
@@ -37,7 +41,7 @@ android {
 
 dependencies {
     implementation(libs.ui)
-    implementation(libs.androidx.material3)
+    //implementation(libs.androidx.material3)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.ui.ui)
