@@ -60,30 +60,20 @@ class DiscussionViewModel(val nearbyService : NearbyService) : ViewModel() {
 
     fun hostChannel(channelName: String, maxUsers: Int) {
         try {
-//            val channel = ChannelInfo(channelName, 1, maxUsers)
-//            discussionModel.setChannel(channel)
-//            refreshChannel()
-//            _connectionState.value = ConnectionState.HOSTING
-            //nearbyService.host()
-            // TODO: Broadcast channel info
-            nearbyService.setOnMessageReceivedListener {
-                receiveMessage(it)
-            }
             nearbyService.startAdvertising()
+            _connectionState.postValue(ConnectionState.CONNECTED)
         } catch (e: Exception) {
             _errorState.value = "Failed to host channel: ${e.message}"
         }
     }
 
     fun scanForChannels() {
-        _connectionState.value = ConnectionState.SCANNING
+        _connectionState.postValue(ConnectionState.SCANNING)
         // Implementation for scanning would update _availableChannels when found
-        // TODO: Implement channel scanning using NearbyService
-        nearbyService.setOnMessageReceivedListener {
-            receiveMessage(it)
+        nearbyService.setOnConnectionEstablishedListener {
+            _connectionState.postValue(ConnectionState.CONNECTED)
         }
         nearbyService.startDiscovery()
-
     }
     
     /*

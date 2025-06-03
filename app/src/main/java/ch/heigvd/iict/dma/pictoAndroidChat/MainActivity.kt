@@ -3,17 +3,17 @@ package ch.heigvd.iict.dma.pictoAndroidChat
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import android.Manifest
+import android.content.Intent
 import android.os.Build
+import android.util.Log
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.result.ActivityResultLauncher
 import ch.heigvd.iict.dma.pictoAndroidChat.services.NearbyService
 import kotlin.collections.toTypedArray
-import android.util.Log
 import android.widget.Button
 import android.widget.Toast
-import androidx.activity.viewModels
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
+import ch.heigvd.iict.dma.pictoAndroidChat.DiscussionViewModel.ConnectionState
 import ch.heigvd.iict.dma.pictoAndroidChat.models.Message
 
 class MainActivity : AppCompatActivity() {
@@ -55,9 +55,12 @@ class MainActivity : AppCompatActivity() {
     }
     override fun onStart() {
         super.onStart()
+
+        // Crée les services et viewmodels
         nearbyService = NearbyService(this)
         discussionViewModel = DiscussionViewModel(nearbyService)
 
+        // Assigne les listeners aux boutons
         findViewById<Button>(R.id.host_button).setOnClickListener {
             discussionViewModel.hostChannel("channel1", 10)
         }
@@ -70,6 +73,12 @@ class MainActivity : AppCompatActivity() {
             discussionViewModel.sendMessage("Hello zebi")
         }
 
+        // Défini le callback pour les messages reçus
+        nearbyService.setOnMessageReceivedListener {
+            discussionViewModel.receiveMessage(it)
+        }
+
+        // Observe les messages reçus (pour test)
         val messageObserver = Observer<List<Message>> { messages->
             // Update the UI, in this case, a TextView.
             if(!messages.isEmpty() )
@@ -77,6 +86,22 @@ class MainActivity : AppCompatActivity() {
         }
 
         discussionViewModel.messages.observe(this, messageObserver)
+
+        // Observe les changements de connexion
+        val connectionObserver = Observer<ConnectionState> { state ->
+            Log.d("MainActivity", "Connection state changed to $state")
+            when (state) {
+                ConnectionState.CONNECTED -> {
+                    val i = Intent(this , DiscussionActivity::class.java)
+                    startActivity(i)
+                }
+
+                else -> {}
+            }
+        }
+
+        discussionViewModel.connectionState.observe(this, connectionObserver)
+        Log.d("MainActivity", "onStart")
     }
 
     private val requestNearbyPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->

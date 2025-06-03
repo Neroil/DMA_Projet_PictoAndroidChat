@@ -24,8 +24,13 @@ class NearbyService(var context: Context) {
 
     var endpointIds: Set<String> = emptySet()
     var isHost: Boolean = false
-    
+
+    var onConnectionEstablished: (() -> Unit)? = null
     var onMessageReceived: ((ByteArray) -> Unit)? = null
+
+    fun setOnConnectionEstablishedListener(listener: () -> Unit) {
+        onConnectionEstablished = listener
+    }
 
     fun setOnMessageReceivedListener(listener: (ByteArray) -> Unit) {
         onMessageReceived = listener
@@ -105,6 +110,10 @@ class NearbyService(var context: Context) {
                 ConnectionsStatusCodes.STATUS_OK -> {
                     Log.d("NearbyService", "Connection successfully established")
                     endpointIds +=  endpointId
+
+                    if (onConnectionEstablished != null) {
+                        onConnectionEstablished!!()
+                    }
                 }
                 ConnectionsStatusCodes.STATUS_CONNECTION_REJECTED -> {
                     Log.d("NearbyService", "Connection rejected")
