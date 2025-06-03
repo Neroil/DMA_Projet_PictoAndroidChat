@@ -24,7 +24,12 @@ class NearbyService(var context: Context) {
 
     var endpointIds: Set<String> = emptySet()
     var isHost: Boolean = false
+    
+    var onMessageReceived: ((ByteArray) -> Unit)? = null
 
+    fun setOnMessageReceivedListener(listener: (ByteArray) -> Unit) {
+        onMessageReceived = listener
+    }
     public fun startAdvertising(){
         try {
             val options = AdvertisingOptions.Builder().setStrategy(STRATEGY).build()
@@ -131,8 +136,11 @@ class NearbyService(var context: Context) {
             if (payload.getType() == Payload.Type.BYTES) {
                 val receivedBytes = payload.asBytes()
                 Log.d("NearbyService", "Received bytes: " + String(receivedBytes!!))
-                Toast.makeText(context, "Received bytes: " + String(receivedBytes!!), Toast.LENGTH_SHORT).show()
-
+                //Toast.makeText(context, "Received bytes: " + String(receivedBytes!!), Toast.LENGTH_SHORT).show()
+                if (onMessageReceived != null) {
+                    onMessageReceived!!(receivedBytes)
+                }
+                
                 if (isHost){
                     // Send the received bytes to the other devices
                     endpointIds.forEach { otherEndpointId ->
