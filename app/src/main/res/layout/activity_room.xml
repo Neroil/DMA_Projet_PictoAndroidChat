@@ -27,7 +27,7 @@
     <androidx.compose.ui.platform.ComposeView
         android:id="@+id/canva"
         android:layout_width="match_parent"
-        android:layout_height="230dp"
+        android:layout_height="220dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintBottom_toTopOf="@id/input_message"
         />
