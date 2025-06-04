@@ -84,14 +84,7 @@ class DiscussionActivity : AppCompatActivity() {
         }
         onBackPressedDispatcher.addCallback(this, callback)
 
-        // Gestion de la gomme
-        findViewById<ToggleButton>(R.id.eraser).setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked) {
-                drawController.changeColor(ERASER_COLOR)
-            } else {
-                drawController.changeColor(DRAW_COLOR)
-            }
-        }
+
     }
 
     override fun onStart() {
@@ -142,8 +135,23 @@ class DiscussionActivity : AppCompatActivity() {
 
             }
 
+
+
             // Efface les inputs
             clear()
+        }
+
+        findViewById<Button>(R.id.button_clear).setOnClickListener {
+            clear()
+        }
+
+        // Gestion de la gomme
+        findViewById<ToggleButton>(R.id.eraser).setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+                drawController.changeColor(ERASER_COLOR)
+            } else {
+                drawController.changeColor(DRAW_COLOR)
+            }
         }
     }
 

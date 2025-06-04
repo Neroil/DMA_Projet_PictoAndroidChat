@@ -60,7 +60,9 @@ class MainActivity : AppCompatActivity() {
         // Crée les services et viewmodels
         nearbyService = NearbyService.get(this)
         discussionViewModel = DiscussionViewModel.get(nearbyService)
-
+        discussionViewModel.clear()
+        
+        
         // Assigne les listeners aux boutons
         findViewById<Button>(R.id.host_button).setOnClickListener {
             discussionViewModel.hostChannel("channel1", 10)
@@ -73,6 +75,10 @@ class MainActivity : AppCompatActivity() {
         // Défini le callback pour les messages reçus
         nearbyService.setOnMessageReceivedListener {
             discussionViewModel.receiveMessage(it)
+        }
+
+        nearbyService.setOnDisconnectionListener{
+            discussionViewModel.disconnect()
         }
 
         // Observe les messages reçus (pour test)

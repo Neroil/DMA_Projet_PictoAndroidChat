@@ -13,6 +13,10 @@ class DiscussionModel {
         return messages.toList()
     }
 
+    fun clearMessages() {
+        messages.clear()
+    }
+
     /*
     fun setChannel(channel: ChannelInfo) {
         currentChannel = channel

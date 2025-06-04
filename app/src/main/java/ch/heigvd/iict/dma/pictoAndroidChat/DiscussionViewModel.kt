@@ -53,11 +53,6 @@ class DiscussionViewModel(val nearbyService : NearbyService) : ViewModel() {
         _localUserInfo.value = discussionModel.localUserInfo
     }
 
-    /*
-    private fun refreshChannel() {
-        _currentChannel.value = discussionModel.currentChannel
-    }
-    */
 
     fun setUsername(name: String) {
         val checkedName: String = if (name.isBlank()) randomUsername() else name
@@ -74,6 +69,12 @@ class DiscussionViewModel(val nearbyService : NearbyService) : ViewModel() {
         }
     }
 
+    fun clear() {
+        _localUserInfo.value!!.name = ""
+        discussionModel.clearMessages()
+        refreshMessages()
+    }
+
     fun scanForChannels() {
         _connectionState.postValue(ConnectionState.SCANNING)
         // Implementation for scanning would update _availableChannels when found
@@ -83,19 +84,6 @@ class DiscussionViewModel(val nearbyService : NearbyService) : ViewModel() {
         nearbyService.startDiscovery()
     }
 
-    /*
-    fun joinChannel(channel: ChannelInfo) {
-        try {
-            discussionModel.setChannel(channel)
-            refreshChannel()
-            _connectionState.value = ConnectionState.CONNECTED
-            // TODO: Implement channel joining using NearbyService
-        } catch (e: Exception) {
-            _errorState.value = "Failed to join channel: ${e.message}"
-            _connectionState.value = ConnectionState.DISCONNECTED
-        }
-    }
-    */
 
     fun sendTextMsg(content: String) {
         val msg = Message.createTextMessage(localUserInfo.value!!.name, content)
@@ -127,14 +115,9 @@ class DiscussionViewModel(val nearbyService : NearbyService) : ViewModel() {
     }
 
 
-    fun updateDrawing(drawingData: ByteArray) {
-        _currentDrawing.value = drawingData
-        // TODO: Broadcast drawing to other users
-    }
-
     fun disconnect() {
         _connectionState.value = ConnectionState.DISCONNECTED
-        // TODO: Disconnect from NearbyService
+        nearbyService.disconnect()
     }
 
     fun clearError() {

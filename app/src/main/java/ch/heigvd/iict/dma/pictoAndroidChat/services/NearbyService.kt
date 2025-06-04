@@ -15,21 +15,21 @@ class NearbyService(var context: Context) {
 
     val serviceId = "dma_pictochat"
     val STRATEGY = Strategy.P2P_CLUSTER
-    var username: String? = null
-        get()  {
-            if(field == null)
-                field = "User${Random().nextInt(10000)}"
-            return field!!
-        }
 
     var endpointIds: Set<String> = emptySet()
     var isHost: Boolean = false
+    val username = ""
 
     var onConnectionEstablished: (() -> Unit)? = null
     var onMessageReceived: ((ByteArray) -> Unit)? = null
+    var onDisconnection: (() -> Unit)? = null
 
     fun setOnConnectionEstablishedListener(listener: () -> Unit) {
         onConnectionEstablished = listener
+    }
+
+    fun setOnDisconnectionListener(listener: () -> Unit) {
+        onDisconnection = listener
     }
 
     fun setOnMessageReceivedListener(listener: (ByteArray) -> Unit) {
@@ -38,7 +38,7 @@ class NearbyService(var context: Context) {
     public fun startAdvertising(){
         try {
             val options = AdvertisingOptions.Builder().setStrategy(STRATEGY).build()
-            Nearby.getConnectionsClient(context).startAdvertising(username!!, serviceId, connectionLifecycleCallback, options)
+            Nearby.getConnectionsClient(context).startAdvertising(username, serviceId, connectionLifecycleCallback, options)
                 .addOnSuccessListener {
                     Log.d("NearbyService", "Advertising successfully started")
                     isHost = true
@@ -69,7 +69,7 @@ class NearbyService(var context: Context) {
         override fun onEndpointFound(endpointId: String, info: DiscoveredEndpointInfo) {
             // An endpoint was found. We request a connection to it.
             Nearby.getConnectionsClient(context)
-                .requestConnection(username!!, endpointId, connectionLifecycleCallback)
+                .requestConnection(username, endpointId, connectionLifecycleCallback)
                 .addOnSuccessListener {
                     Log.d("NearbyService", "Connection successfully requested")
                     Nearby.getConnectionsClient(context).stopDiscovery()
@@ -136,6 +136,10 @@ class NearbyService(var context: Context) {
             // sent or received.
             Log.d("NearbyService", "Disconnected")
             endpointIds -= endpointId
+            if(!isHost && onDisconnection != null){
+                onDisconnection?.invoke()
+            }
+
         }
     }
 
@@ -176,6 +180,12 @@ class NearbyService(var context: Context) {
         endpointIds.forEach { endpointId ->
             Nearby.getConnectionsClient(context).sendPayload(endpointId, bytesPayload)
         }
+    }
+
+    fun disconnect(){
+        Nearby.getConnectionsClient(context).stopAllEndpoints()
+        endpointIds = emptySet()
+        isHost = false
     }
 
 
