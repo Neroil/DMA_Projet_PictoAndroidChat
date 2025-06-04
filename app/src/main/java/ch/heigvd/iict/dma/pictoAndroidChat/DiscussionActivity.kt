@@ -1,6 +1,5 @@
 package ch.heigvd.iict.dma.pictoAndroidChat
 
-import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Bundle
 import android.util.Log
@@ -8,9 +7,12 @@ import android.widget.Button
 import android.widget.EditText
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.ComposeView
 import androidx.lifecycle.Observer
 import ch.heigvd.iict.dma.pictoAndroidChat.DiscussionViewModel.ConnectionState
@@ -25,7 +27,6 @@ class DiscussionActivity : AppCompatActivity() {
     private lateinit var discussionViewModel: DiscussionViewModel
     private lateinit var drawController: DrawController
 
-    private var hasDraw = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,7 +48,8 @@ class DiscussionActivity : AppCompatActivity() {
             )
         }
 
-        // Gestion du bouton de retour
+
+            // Gestion du bouton de retour
         val callback = object : OnBackPressedCallback(
             true // default to enabled
         ) {
@@ -69,12 +71,17 @@ class DiscussionActivity : AppCompatActivity() {
         findViewById<Button>(R.id.button_send).setOnClickListener {
             val messageBox = findViewById<EditText>(R.id.input_message)
 
-            if (messageBox.text.isEmpty()) {
+            // Envoie le dessin s'il n'est pas vide
+            if (drawController.exportPath().path.isNotEmpty()) {
                 drawController.saveBitmap()
-            } else {
+            }
+
+            // Envoie le texte s'il n'est pas vide
+            if (messageBox.text.isNotEmpty()) {
                 Log.d("DiscussionActivity", "Sending message: ${messageBox.text.toString()}")
                 discussionViewModel.sendTextMsg(messageBox.text.toString())
             }
+
             // Efface les inputs
             clear()
         }
@@ -99,7 +106,6 @@ class DiscussionActivity : AppCompatActivity() {
 
     private fun clear(){
         drawController.reset()
-        hasDraw = false
         findViewById<EditText>(R.id.input_message).text.clear()
     }
 }
