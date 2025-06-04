@@ -57,8 +57,8 @@ class MainActivity : AppCompatActivity() {
         super.onStart()
 
         // Crée les services et viewmodels
-        nearbyService = NearbyService(this)
-        discussionViewModel = DiscussionViewModel(nearbyService)
+        nearbyService = NearbyService.get(this)
+        discussionViewModel = DiscussionViewModel.get(nearbyService)
 
         // Assigne les listeners aux boutons
         findViewById<Button>(R.id.host_button).setOnClickListener {
@@ -67,10 +67,6 @@ class MainActivity : AppCompatActivity() {
 
         findViewById<Button>(R.id.join_button).setOnClickListener {
             discussionViewModel.scanForChannels()
-        }
-
-        findViewById<Button>(R.id.send).setOnClickListener {
-            discussionViewModel.sendMessage("Hello zebi")
         }
 
         // Défini le callback pour les messages reçus
