@@ -1,6 +1,7 @@
 package ch.heigvd.iict.dma.pictoAndroidChat
 
-import android.content.Context
+import android.graphics.Bitmap
+import android.util.Base64
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -10,6 +11,9 @@ import ch.heigvd.iict.dma.pictoAndroidChat.models.DiscussionModel
 import ch.heigvd.iict.dma.pictoAndroidChat.models.LocalUserInfo
 import ch.heigvd.iict.dma.pictoAndroidChat.models.Message
 import ch.heigvd.iict.dma.pictoAndroidChat.services.NearbyService
+import java.io.ByteArrayOutputStream
+import java.util.Random
+
 
 class DiscussionViewModel(val nearbyService : NearbyService) : ViewModel() {
 
@@ -23,7 +27,7 @@ class DiscussionViewModel(val nearbyService : NearbyService) : ViewModel() {
 
     // Private LiveData
     private val _messages = MutableLiveData<List<Message>>(emptyList())
-    private val _localUserInfo = MutableLiveData<LocalUserInfo?>()
+    private val _localUserInfo = MutableLiveData<LocalUserInfo>(LocalUserInfo(randomUsername()))
     private val _currentChannel = MutableLiveData<ChannelInfo?>()
     private val _availableChannels = MutableLiveData<List<ChannelInfo>>(emptyList())
     private val _connectionState = MutableLiveData<ConnectionState>(ConnectionState.DISCONNECTED)
@@ -33,7 +37,7 @@ class DiscussionViewModel(val nearbyService : NearbyService) : ViewModel() {
 
     // Public LiveData exposed to the UI
     val messages: LiveData<List<Message>> = _messages
-    val localUserInfo: LiveData<LocalUserInfo?> = _localUserInfo
+    val localUserInfo: LiveData<LocalUserInfo> = _localUserInfo
     val currentChannel: LiveData<ChannelInfo?> = _currentChannel
     val availableChannels: LiveData<List<ChannelInfo>> = _availableChannels
     val connectionState: LiveData<ConnectionState> = _connectionState
@@ -56,7 +60,8 @@ class DiscussionViewModel(val nearbyService : NearbyService) : ViewModel() {
     */
 
     fun setUsername(name: String) {
-        discussionModel.localUserInfo = LocalUserInfo(name)
+        val checkedName: String = if (name.isBlank()) randomUsername() else name
+        discussionModel.localUserInfo = LocalUserInfo(checkedName)
         refreshUserInfo()
     }
 
@@ -92,10 +97,24 @@ class DiscussionViewModel(val nearbyService : NearbyService) : ViewModel() {
     }
     */
 
-    fun sendMessage(content: String) {
-        val username = discussionModel.localUserInfo?.name ?: "Unknown"
-        //val channelId = discussionModel.currentChannel?.id
-        val message = Message(username, content)
+    fun sendTextMsg(content: String) {
+        val msg = Message.createTextMessage(localUserInfo.value!!.name, content)
+        sendMesage(msg)
+        Log.d("DiscussionViewModel","Sending message: ${msg.getContent()}")
+    }
+
+    fun sendDrawingMsg(drawingData: Bitmap) {
+        // Convert bitmap to ByteArray
+        val byteArrayOutputStream = ByteArrayOutputStream()
+        drawingData.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream)
+        val byteArray = byteArrayOutputStream.toByteArray()
+
+        val msg = Message.createDrawingMessage(localUserInfo.value!!.name, byteArray)
+        sendMesage(msg)
+        Log.d("DiscussionViewModel","Sending message: ${msg.getDrawingData()}")
+    }
+
+    fun sendMesage(message: Message) {
         discussionModel.addMessage(message)
         refreshMessages()
         nearbyService.sendPayload(message.toByteArray())
@@ -138,6 +157,10 @@ class DiscussionViewModel(val nearbyService : NearbyService) : ViewModel() {
             }
 
             return instance!!
+        }
+
+        fun randomUsername(): String {
+            return "User${Random().nextInt(10000)}"
         }
     }
 }

@@ -69,10 +69,6 @@ class MainActivity : AppCompatActivity() {
             discussionViewModel.scanForChannels()
         }
 
-        findViewById<Button>(R.id.send).setOnClickListener {
-            discussionViewModel.sendMessage("Hello zebi")
-        }
-
         // Défini le callback pour les messages reçus
         nearbyService.setOnMessageReceivedListener {
             discussionViewModel.receiveMessage(it)
