@@ -45,9 +45,18 @@ class DiscussionActivity : AppCompatActivity() {
     }
 
     private fun setupRecyclerView() {
-        messageAdapter = DiscussionAdapter(discussionViewModel.messages.value!!)
-        recyclerView.adapter = messageAdapter
         recyclerView.layoutManager = LinearLayoutManager(this)
+
+        // Observe messages and update adapter when they change
+        discussionViewModel.messages.observe(this) { messages ->
+            messageAdapter = DiscussionAdapter(messages)
+            recyclerView.adapter = messageAdapter
+
+            // Auto-scroll to bottom when new messages arrive
+            if (messages.isNotEmpty()) {
+                recyclerView.scrollToPosition(messages.size - 1)
+            }
+        }
     }
 
     private fun setupDrawingCanvas() {
@@ -133,15 +142,8 @@ class DiscussionActivity : AppCompatActivity() {
 
             }
 
-            messageAdapter.notifyItemInserted(discussionViewModel.messages.value!!.size - 1)
-            recyclerView.scrollToPosition(discussionViewModel.messages.value!!.size - 1)
-
             // Efface les inputs
             clear()
-        }
-
-        findViewById<Button>(R.id.button_leave).setOnClickListener {
-            finish()
         }
     }
 

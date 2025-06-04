@@ -10,6 +10,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import ch.heigvd.iict.dma.pictoAndroidChat.services.NearbyService
 import kotlin.collections.toTypedArray
 import android.widget.Button
+import android.widget.EditText
 import android.widget.Toast
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
@@ -88,6 +89,10 @@ class MainActivity : AppCompatActivity() {
             Log.d("MainActivity", "Connection state changed to $state")
             when (state) {
                 ConnectionState.CONNECTED -> {
+                    val username = findViewById<EditText>(R.id.username_input).text
+                    if (!username.isEmpty()){
+                        discussionViewModel.setUsername(username.toString())
+                    }
                     val i = Intent(this , DiscussionActivity::class.java)
                     startActivity(i)
                 }
