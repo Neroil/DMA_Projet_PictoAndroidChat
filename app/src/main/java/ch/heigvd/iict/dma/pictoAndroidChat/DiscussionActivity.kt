@@ -41,13 +41,6 @@ class DiscussionActivity : AppCompatActivity() {
         setupRecyclerView()
         setupDrawingCanvas()
         setupClickListeners()
-
-        // Example messages
-        addTextMessage("User1", "Hello everyone!")
-        addTextMessage("User2", "How's everyone doing?")
-
-        // NEW: Add an example drawing message
-        addExampleDrawingMessage()
     }
 
     private fun initializeViews() {
@@ -88,11 +81,7 @@ class DiscussionActivity : AppCompatActivity() {
 
     private fun setupClickListeners() {
         buttonSend.setOnClickListener {
-            val messageText = inputMessage.text.toString().trim()
-            if (messageText.isNotEmpty()) {
-                addTextMessage("CurrentUser", messageText)
-                inputMessage.text.clear()
-            }
+
         }
 
         buttonClear.setOnClickListener {
@@ -104,39 +93,6 @@ class DiscussionActivity : AppCompatActivity() {
         findViewById<Button>(R.id.button_leave).setOnClickListener {
             finish()
         }
-    }
-
-    // NEW: Function to add an example drawing message
-    private fun addExampleDrawingMessage() {
-        // Create a simple example bitmap drawing (a red circle with "Hi!" text)
-        val bitmap = Bitmap.createBitmap(200, 200, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(bitmap)
-
-        // Fill background with white
-        canvas.drawColor(Color.WHITE)
-
-        // Draw a red circle
-        val circlePaint = Paint().apply {
-            color = Color.RED
-            isAntiAlias = true
-        }
-        canvas.drawCircle(100f, 80f, 50f, circlePaint)
-
-        // Draw "Hi!" text in blue
-        val textPaint = Paint().apply {
-            color = Color.BLUE
-            textSize = 30f
-            isAntiAlias = true
-            textAlign = Paint.Align.CENTER
-        }
-        canvas.drawText("Hi!", 100f, 140f, textPaint)
-
-        // Convert to base64 and add as message
-        val base64Drawing = bitmapToBase64(bitmap)
-        addDrawingMessage("Alice", base64Drawing)
-
-        // Add a text message after the drawing
-        addTextMessage("Alice", "I just sent you a drawing! 🎨")
     }
 
     private fun addTextMessage(sender: String, content: String) {
