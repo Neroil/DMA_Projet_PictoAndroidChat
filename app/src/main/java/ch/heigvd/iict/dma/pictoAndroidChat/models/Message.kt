@@ -1,9 +1,9 @@
 package ch.heigvd.iict.dma.pictoAndroidChat.models
 
+import android.graphics.Bitmap
 import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
 import android.util.Base64
-
 
 enum class MessageType {
     TEXT, DRAWING
