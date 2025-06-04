@@ -177,4 +177,21 @@ class NearbyService(var context: Context) {
             Nearby.getConnectionsClient(context).sendPayload(endpointId, bytesPayload)
         }
     }
+
+
+
+    companion object{
+        private var instance: NearbyService? = null
+        fun get(context: Context? = null): NearbyService {
+            if (instance == null) {
+                if(context != null)
+                    instance = NearbyService(context)
+                else
+                    throw Exception("Context is null")
+            }
+            else if(context != null)
+                instance!!.context = context
+            return instance!!
+        }
+    }
 }

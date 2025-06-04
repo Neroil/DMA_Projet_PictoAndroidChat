@@ -3,6 +3,7 @@ package ch.heigvd.iict.dma.pictoAndroidChat.models
 import android.graphics.Bitmap
 import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
+import android.util.Base64
 
 enum class MessageType {
     TEXT, DRAWING
@@ -60,14 +61,15 @@ data class Message(
         }
 
         // Factory method for drawing messages
-        fun createDrawingMessage(sender: String, drawingData: String): Message {
+        fun createDrawingMessage(sender: String, drawingData: ByteArray): Message {
+            val drawing = Base64.encodeToString(drawingData, Base64.DEFAULT)
             return Message(
                 getGlobalId(),
                 sender,
                 "",
                 System.currentTimeMillis().toInt(),
                 MessageType.DRAWING,
-                drawingData
+                drawing
             )
         }
 
