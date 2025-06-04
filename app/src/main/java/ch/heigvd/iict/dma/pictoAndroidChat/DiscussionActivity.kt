@@ -1,10 +1,6 @@
 package ch.heigvd.iict.dma.pictoAndroidChat
 
 import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
-import android.util.Base64
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
@@ -26,10 +22,6 @@ import ch.heigvd.iict.dma.pictoAndroidChat.services.NearbyService
 import io.ak1.drawbox.DrawBox
 import io.ak1.drawbox.DrawController
 import io.ak1.drawbox.rememberDrawController
-import ch.heigvd.iict.dma.pictoAndroidChat.models.Message
-import ch.heigvd.iict.dma.pictoAndroidChat.models.MessageType
-import java.io.ByteArrayOutputStream
-import androidx.core.graphics.createBitmap
 
 class DiscussionActivity : AppCompatActivity() {
     private lateinit var recyclerView: RecyclerView
@@ -47,29 +39,19 @@ class DiscussionActivity : AppCompatActivity() {
         setContentView(R.layout.activity_room)
         Log.d("DiscussionActivity", "onCreate")
 
-        initializeViews()
-        setupRecyclerView()
+        recyclerView = findViewById(R.id.message_view)
         setupDrawingCanvas()
         setupClickListeners()
     }
 
-    private fun initializeViews() {
-        recyclerView = findViewById(R.id.message_view)
-        inputMessage = findViewById(R.id.input_message)
-        buttonSend = findViewById(R.id.button_send)
-        buttonClear = findViewById(R.id.button_clear)
-        eraserToggle = findViewById(R.id.eraser)
-        canva = findViewById(R.id.canva)
-    }
-
     private fun setupRecyclerView() {
-        messageAdapter = DiscussionAdapter(messages)
+        messageAdapter = DiscussionAdapter(discussionViewModel.messages.value!!)
         recyclerView.adapter = messageAdapter
         recyclerView.layoutManager = LinearLayoutManager(this)
     }
 
     private fun setupDrawingCanvas() {
-        canva.setContent {
+        findViewById<ComposeView>(R.id.canva).setContent {
             drawController = rememberDrawController()
             drawController.changeColor(DRAW_COLOR)
 
@@ -108,23 +90,8 @@ class DiscussionActivity : AppCompatActivity() {
         nearbyService = NearbyService.get(this)
         discussionViewModel = DiscussionViewModel.get()
 
-        findViewById<Button>(R.id.button_send).setOnClickListener {
-            val messageBox = findViewById<EditText>(R.id.input_message)
-
-            // Envoie le dessin s'il n'est pas vide
-            if (drawController.exportPath().path.isNotEmpty()) {
-                drawController.saveBitmap()
-            }
-
-            // Envoie le texte s'il n'est pas vide
-            if (messageBox.text.isNotEmpty()) {
-                Log.d("DiscussionActivity", "Sending message: ${messageBox.text.toString()}")
-                discussionViewModel.sendTextMsg(messageBox.text.toString())
-            }
-
-            // Efface les inputs
-            clear()
-        }
+        setupClickListeners()
+        setupRecyclerView()
 
         // Observe les changements de connexion
         val connectionObserver = Observer<ConnectionState> { state ->
@@ -150,14 +117,27 @@ class DiscussionActivity : AppCompatActivity() {
     }
 
     private fun setupClickListeners() {
-        buttonSend.setOnClickListener {
+        findViewById<Button>(R.id.button_send).setOnClickListener {
+            val messageBox = findViewById<EditText>(R.id.input_message)
 
-        }
+            // Envoie le dessin s'il n'est pas vide
+            if (drawController.exportPath().path.isNotEmpty()) {
+                drawController.saveBitmap()
+            }
 
-        buttonClear.setOnClickListener {
-            // Clear the drawing canvas
-            // Note: This requires access to the DrawController - you might need to restructure
-            // the Compose content to expose the controller
+            // Envoie le texte s'il n'est pas vide
+            if (messageBox.text.isNotEmpty()) {
+                Log.d("DiscussionActivity", "Sending message: ${messageBox.text.toString()}")
+                discussionViewModel.sendTextMsg(messageBox.text.toString())
+
+
+            }
+
+            messageAdapter.notifyItemInserted(discussionViewModel.messages.value!!.size - 1)
+            recyclerView.scrollToPosition(discussionViewModel.messages.value!!.size - 1)
+
+            // Efface les inputs
+            clear()
         }
 
         findViewById<Button>(R.id.button_leave).setOnClickListener {
@@ -165,40 +145,4 @@ class DiscussionActivity : AppCompatActivity() {
         }
     }
 
-    private fun addTextMessage(sender: String, content: String) {
-        val message = Message.createTextMessage(sender, content)
-        messages.add(message)
-        messageAdapter.notifyItemInserted(messages.size - 1)
-        recyclerView.scrollToPosition(messages.size - 1)
-    }
-
-    private fun addDrawingMessage(sender: String, drawingData: String) {
-        val message = Message.createDrawingMessage(sender, drawingData)
-        messages.add(message)
-        messageAdapter.notifyItemInserted(messages.size - 1)
-        recyclerView.scrollToPosition(messages.size - 1)
-    }
-
-    // Helper function to convert Bitmap to Base64
-    private fun bitmapToBase64(bitmap: Bitmap): String {
-        val byteArrayOutputStream = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream)
-        val byteArray = byteArrayOutputStream.toByteArray()
-        return Base64.encodeToString(byteArray, Base64.DEFAULT)
-    }
-}
-
-// Helper function to convert Bitmap to Base64 (for storing drawings)
-fun bitmapToBase64(bitmap: Bitmap): String {
-    val byteArrayOutputStream = ByteArrayOutputStream()
-    bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream)
-    val byteArray = byteArrayOutputStream.toByteArray()
-    return Base64.encodeToString(byteArray, Base64.DEFAULT)
-}
-
-// Extension function to convert ImageBitmap to Android Bitmap
-fun androidx.compose.ui.graphics.ImageBitmap.asAndroidBitmap(): Bitmap {
-    return createBitmap(width, height).apply {
-        copyPixelsFromBuffer(java.nio.IntBuffer.wrap(IntArray(width * height)))
-    }
 }

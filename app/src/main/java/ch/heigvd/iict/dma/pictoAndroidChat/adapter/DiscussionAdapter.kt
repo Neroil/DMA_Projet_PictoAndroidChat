@@ -3,6 +3,7 @@ package ch.heigvd.iict.dma.pictoAndroidChat.adapter
 import ch.heigvd.iict.dma.pictoAndroidChat.models.Message
 import android.graphics.BitmapFactory
 import android.util.Base64
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -27,6 +28,7 @@ class DiscussionAdapter(private val messages: List<Message>) : RecyclerView.Adap
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+        Log.d("Adapter", "adding message of type : $viewType")
         return when (viewType) {
             VIEW_TYPE_TEXT -> {
                 val view = LayoutInflater.from(parent.context)
