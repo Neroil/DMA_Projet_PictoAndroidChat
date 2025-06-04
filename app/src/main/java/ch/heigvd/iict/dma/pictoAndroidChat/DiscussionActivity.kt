@@ -5,14 +5,13 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ToggleButton
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asAndroidBitmap
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.ComposeView
 import androidx.lifecycle.Observer
 import ch.heigvd.iict.dma.pictoAndroidChat.DiscussionViewModel.ConnectionState
@@ -27,6 +26,9 @@ class DiscussionActivity : AppCompatActivity() {
     private lateinit var discussionViewModel: DiscussionViewModel
     private lateinit var drawController: DrawController
 
+    private val DRAW_COLOR = Color.Black
+    private val ERASER_COLOR = Color.White
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,6 +38,7 @@ class DiscussionActivity : AppCompatActivity() {
         val canva = findViewById<ComposeView>(R.id.canva)
         canva.setContent {
             drawController = rememberDrawController()
+            drawController.changeColor(DRAW_COLOR)
 
             DrawBox(
                 drawController = drawController,
@@ -49,18 +52,22 @@ class DiscussionActivity : AppCompatActivity() {
         }
 
 
-            // Gestion du bouton de retour
-        val callback = object : OnBackPressedCallback(
-            true // default to enabled
-        ) {
+        // Gestion du bouton de retour
+        val callback = object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 discussionViewModel.disconnect()
             }
         }
-        onBackPressedDispatcher.addCallback(
-            this, // LifecycleOwner
-            callback
-        )
+        onBackPressedDispatcher.addCallback(this, callback)
+
+        // Gestion de la gomme
+        findViewById<ToggleButton>(R.id.eraser).setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+                drawController.changeColor(ERASER_COLOR)
+            } else {
+                drawController.changeColor(DRAW_COLOR)
+            }
+        }
     }
 
     override fun onStart() {
