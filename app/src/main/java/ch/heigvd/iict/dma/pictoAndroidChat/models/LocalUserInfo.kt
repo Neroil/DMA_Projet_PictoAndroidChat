@@ -1,7 +1,11 @@
 package ch.heigvd.iict.dma.pictoAndroidChat.models
 
 /**
- * LocalUserInfo is just a simple data class that holds the name of the user.
+ * Une data classe simple pour contenir les informations de l'utilisateur.
+ *
+ * @author Guillaume Dunant
+ * @author Edwin Haeffner
+ * @author Arthur Junod
  */
 data class LocalUserInfo(
     var name: String

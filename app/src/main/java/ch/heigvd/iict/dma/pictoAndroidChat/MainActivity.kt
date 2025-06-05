@@ -15,7 +15,14 @@ import android.widget.Toast
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import ch.heigvd.iict.dma.pictoAndroidChat.DiscussionViewModel.ConnectionState
-import ch.heigvd.iict.dma.pictoAndroidChat.models.Message
+
+/**
+ * Activité principale de l'application de chat.
+ * Gère les permissions, l'initialisation des services et la navigation vers les discussions.
+ * @author Guillaume Dunant
+ * @author Edwin Haeffner
+ * @author Arthur Junod
+ */
 
 class MainActivity : AppCompatActivity() {
 
@@ -23,7 +30,12 @@ class MainActivity : AppCompatActivity() {
     private val permissionsGranted = MutableLiveData(false)
     private lateinit var discussionViewModel: DiscussionViewModel
 
-
+    /**
+     * Initialise l'activité et demande les permissions nécessaires.
+     * Configure les permissions selon la version Android.
+     *
+     * @param savedInstanceState L'état sauvegardé de l'activité
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -32,7 +44,7 @@ class MainActivity : AppCompatActivity() {
             Manifest.permission.CHANGE_WIFI_STATE,
             Manifest.permission.ACCESS_COARSE_LOCATION)
 
-        // we request permissions
+        // On demande les permissions
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             permissions += Manifest.permission.ACCESS_FINE_LOCATION
             permissions += Manifest.permission.BLUETOOTH_SCAN
@@ -51,24 +63,29 @@ class MainActivity : AppCompatActivity() {
             permissions += Manifest.permission.NEARBY_WIFI_DEVICES
 
         requestNearbyPermissionLauncher.launch(permissions.toTypedArray())
-
-
     }
+
+    /**
+     * Configure les services, le ViewModel et les observateurs au démarrage de l'activité.
+     * Initialise les listeners pour les boutons et les callbacks pour les messages.
+     */
     override fun onStart() {
         super.onStart()
 
         // Crée les services et viewmodels
         nearbyService = NearbyService.get(this)
         discussionViewModel = DiscussionViewModel.get(nearbyService)
-        discussionViewModel.clear()
+        discussionViewModel.reset()
         
         
         // Assigne les listeners aux boutons
+
         findViewById<Button>(R.id.host_button).setOnClickListener {
             discussionViewModel.hostChannel("channel1", 10)
         }
 
         findViewById<Button>(R.id.join_button).setOnClickListener {
+            Toast.makeText(this, "Attempting to join a room...", Toast.LENGTH_SHORT).show()
             discussionViewModel.scanForChannels()
         }
 
@@ -80,15 +97,6 @@ class MainActivity : AppCompatActivity() {
         nearbyService.setOnDisconnectionListener{
             discussionViewModel.disconnect()
         }
-
-        // Observe les messages reçus (pour test)
-        val messageObserver = Observer<List<Message>> { messages->
-            // Update the UI, in this case, a TextView.
-            if(!messages.isEmpty() )
-                Toast.makeText(this, "Msg: ${ messages.last()}, Size: ${messages.size}", Toast.LENGTH_SHORT).show()
-        }
-
-        discussionViewModel.messages.observe(this, messageObserver)
 
         // Observe les changements de connexion
         val connectionObserver = Observer<ConnectionState> { state ->
@@ -111,6 +119,10 @@ class MainActivity : AppCompatActivity() {
         Log.d("MainActivity", "onStart")
     }
 
+    /**
+     * Gestionnaire de résultat pour les demandes de permissions multiples.
+     * Vérifie si toutes les permissions nécessaires ont été accordées selon la version Android.
+     */
     private val requestNearbyPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
 
         val grantedBase = permissions.getOrDefault(Manifest.permission.ACCESS_WIFI_STATE, false) &&
@@ -135,13 +147,13 @@ class MainActivity : AppCompatActivity() {
             true
 
         if (grantedBase && granted31 && granted32) {
-            // Permission is granted. Continue the action
+            // Les permissions nous ont été données
             permissionsGranted.postValue(true)
 
         }
         else {
-            // Explain to the user that the feature is unavailable
-            Toast.makeText(this, "haaaaaaaaaaaaaa", Toast.LENGTH_SHORT).show()
+            // Toast to indicate a permission wasn't granted
+            Toast.makeText(this, "Permission is missing", Toast.LENGTH_SHORT).show()
             permissionsGranted.postValue(false)
         }
     }

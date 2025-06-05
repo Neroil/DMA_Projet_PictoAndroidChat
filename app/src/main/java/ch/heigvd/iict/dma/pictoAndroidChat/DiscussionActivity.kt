@@ -23,9 +23,16 @@ import io.ak1.drawbox.DrawBox
 import io.ak1.drawbox.DrawController
 import io.ak1.drawbox.rememberDrawController
 
+/**
+ * Activité de la salle de discussion. Elle se lance si l'on hébérge une salle ou si on en rejoint une.
+ * @author Guillaume Dunant
+ * @author Edwin Haeffner
+ * @author Arthur Junod
+ */
+
 class DiscussionActivity : AppCompatActivity() {
     private lateinit var recyclerView: RecyclerView
-    private lateinit var messageAdapter: DiscussionAdapter
+    private lateinit var discussionAdapter: DiscussionAdapter
 
     private lateinit var nearbyService: NearbyService
     private lateinit var discussionViewModel: DiscussionViewModel
@@ -42,49 +49,6 @@ class DiscussionActivity : AppCompatActivity() {
         recyclerView = findViewById(R.id.message_view)
         setupDrawingCanvas()
         setupClickListeners()
-    }
-
-    private fun setupRecyclerView() {
-        recyclerView.layoutManager = LinearLayoutManager(this)
-
-        // Observe messages and update adapter when they change
-        discussionViewModel.messages.observe(this) { messages ->
-            messageAdapter = DiscussionAdapter(messages)
-            recyclerView.adapter = messageAdapter
-
-            // Auto-scroll to bottom when new messages arrive
-            if (messages.isNotEmpty()) {
-                recyclerView.scrollToPosition(messages.size - 1)
-            }
-        }
-    }
-
-    private fun setupDrawingCanvas() {
-        findViewById<ComposeView>(R.id.canva).setContent {
-            drawController = rememberDrawController()
-            drawController.changeColor(DRAW_COLOR)
-
-            DrawBox(
-                drawController = drawController,
-                modifier = Modifier.fillMaxSize(),
-                bitmapCallback = { imageBitmap, error ->
-                    imageBitmap?.let {
-                        sendBitmap(it.asAndroidBitmap())
-                    }
-                }
-            )
-        }
-
-
-        // Gestion du bouton de retour
-        val callback = object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() {
-                discussionViewModel.disconnect()
-            }
-        }
-        onBackPressedDispatcher.addCallback(this, callback)
-
-
     }
 
     override fun onStart() {
@@ -109,15 +73,64 @@ class DiscussionActivity : AppCompatActivity() {
         discussionViewModel.connectionState.observe(this, connectionObserver)
     }
 
+
+    /**
+     * Met en place la RecyclerView.
+     */
+    private fun setupRecyclerView() {
+        recyclerView.layoutManager = LinearLayoutManager(this)
+
+        // Observe les messages du ViewModel afin de réagir quand il y en a un nouveau
+        discussionViewModel.messages.observe(this) { messages ->
+            discussionAdapter = DiscussionAdapter(messages)
+            recyclerView.adapter = discussionAdapter
+
+            // permet de défiler automatiquement sur le nouveau message recu
+            if (messages.isNotEmpty()) {
+                recyclerView.scrollToPosition(messages.size - 1)
+            }
+        }
+    }
+
+    /**
+     * Permet de mettre en place le canva qui nous permet de dessiner.
+     */
+    private fun setupDrawingCanvas() {
+        findViewById<ComposeView>(R.id.canva).setContent {
+            drawController = rememberDrawController()
+            drawController.changeColor(DRAW_COLOR)
+
+            DrawBox(
+                drawController = drawController,
+                modifier = Modifier.fillMaxSize(),
+                bitmapCallback = { imageBitmap, error ->
+                    imageBitmap?.let {
+                        sendBitmap(it.asAndroidBitmap())
+                    }
+                }
+            )
+        }
+    }
+
+    /**
+     * Permet d'envoyer une bitmap au ViewModel.
+     * @param bitmap La bitmap à envoyer au ViewModel.
+     */
     private fun sendBitmap(bitmap: Bitmap){
         discussionViewModel.sendDrawingMsg(bitmap)
     }
 
+    /**
+     * Efface tous les input (dessin et texte) de l'utilisateur.
+     */
     private fun clear(){
         drawController.reset()
         findViewById<EditText>(R.id.input_message).text.clear()
     }
 
+    /**
+     * Met en place les listeners sur tous les boutons que l'on va utiliser.
+     */
     private fun setupClickListeners() {
         findViewById<Button>(R.id.button_send).setOnClickListener {
             val messageBox = findViewById<EditText>(R.id.input_message)
@@ -131,16 +144,13 @@ class DiscussionActivity : AppCompatActivity() {
             if (messageBox.text.isNotEmpty()) {
                 Log.d("DiscussionActivity", "Sending message: ${messageBox.text.toString()}")
                 discussionViewModel.sendTextMsg(messageBox.text.toString())
-
-
             }
-
-
 
             // Efface les inputs
             clear()
         }
 
+        // Gestion du bouton "clear"
         findViewById<Button>(R.id.button_clear).setOnClickListener {
             clear()
         }
@@ -153,6 +163,14 @@ class DiscussionActivity : AppCompatActivity() {
                 drawController.changeColor(DRAW_COLOR)
             }
         }
+
+        // Gestion du bouton "retour"
+        val callback = object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                discussionViewModel.disconnect()
+            }
+        }
+        onBackPressedDispatcher.addCallback(this, callback)
     }
 
 }

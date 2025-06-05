@@ -1,16 +1,20 @@
 package ch.heigvd.iict.dma.pictoAndroidChat.services
 
-import android.R
 import android.content.Context
 import android.content.DialogInterface
 import android.util.Log
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog.Builder
 import com.google.android.gms.nearby.Nearby
 import com.google.android.gms.nearby.connection.*
-import java.util.Random
 
-
+/**
+ * Service de gestion des connexions Nearby pour la communication peer-to-peer.
+ * Permet de créer et rejoindre des salles de discussion via Google Nearby Connections API.
+ *
+ * @author Guillaume Dunant
+ * @author Edwin Haeffner
+ * @author Arthur Junod
+ */
 class NearbyService(var context: Context) {
 
     val serviceId = "dma_pictochat"
@@ -24,17 +28,34 @@ class NearbyService(var context: Context) {
     var onMessageReceived: ((ByteArray) -> Unit)? = null
     var onDisconnection: (() -> Unit)? = null
 
+    /**
+     * Définit le callback appelé lorsqu'une connexion est établie.
+     * @param listener La fonction à appeler lors de l'établissement de la connexion
+     */
     fun setOnConnectionEstablishedListener(listener: () -> Unit) {
         onConnectionEstablished = listener
     }
 
+    /**
+     * Définit le callback appelé lors d'une déconnexion.
+     * @param listener La fonction à appeler lors de la déconnexion
+     */
     fun setOnDisconnectionListener(listener: () -> Unit) {
         onDisconnection = listener
     }
 
+    /**
+     * Définit le callback appelé lors de la réception d'un message.
+     * @param listener La fonction à appeler avec les données reçues
+     */
     fun setOnMessageReceivedListener(listener: (ByteArray) -> Unit) {
         onMessageReceived = listener
     }
+
+    /**
+     * Démarre la publicité pour permettre à d'autres appareils de découvrir ce service.
+     * L'appareil devient hôte de la salle de discussion.
+     */
     public fun startAdvertising(){
         try {
             val options = AdvertisingOptions.Builder().setStrategy(STRATEGY).build()
@@ -42,7 +63,6 @@ class NearbyService(var context: Context) {
                 .addOnSuccessListener {
                     Log.d("NearbyService", "Advertising successfully started")
                     isHost = true
-                    //Nearby.getConnectionsClient(context).stopAdvertising()
                 }
                 .addOnFailureListener {
                     Log.d("NearbyService", "Advertising failed ${it.message}")
@@ -50,9 +70,12 @@ class NearbyService(var context: Context) {
         } catch (e: Exception) {
             Log.d("NearbyService", "Advertising failed ${e.message}")
         }
-
     }
 
+    /**
+     * Démarre la découverte d'autres appareils qui publient ce service.
+     * Permet de rejoindre une salle de discussion existante.
+     */
     public fun startDiscovery(){
         val options = DiscoveryOptions.Builder().setStrategy(STRATEGY).build()
         Nearby.getConnectionsClient(context)
@@ -65,9 +88,13 @@ class NearbyService(var context: Context) {
             }
     }
 
+    /**
+     * Callback pour la découverte d'endpoints.
+     * Gère la découverte et la perte d'appareils disponibles.
+     */
     private val endpointDiscoveryCallback: EndpointDiscoveryCallback = object : EndpointDiscoveryCallback() {
         override fun onEndpointFound(endpointId: String, info: DiscoveredEndpointInfo) {
-            // An endpoint was found. We request a connection to it.
+            // Un endpoint a été trouvé. Nous demandons une connexion avec lui.
             Nearby.getConnectionsClient(context)
                 .requestConnection(username, endpointId, connectionLifecycleCallback)
                 .addOnSuccessListener {
@@ -80,11 +107,15 @@ class NearbyService(var context: Context) {
         }
 
         override fun onEndpointLost(endpointId: String) {
-            // A previously discovered endpoint has gone away.
+            // Un endpoint précédemment découvert a disparu.
             Log.d("NearbyService", "Endpoint lost")
         }
     }
 
+    /**
+     * Callback pour le cycle de vie des connexions.
+     * Gère l'initiation, le résultat et la déconnexion des connexions.
+     */
     private val connectionLifecycleCallback: ConnectionLifecycleCallback = object : ConnectionLifecycleCallback() {
         override fun onConnectionInitiated(endpointId: String, info: ConnectionInfo) {
             Builder(context)
@@ -92,16 +123,16 @@ class NearbyService(var context: Context) {
                 .setMessage("Confirm the code matches on both devices: " + info.authenticationDigits)
                 .setPositiveButton(
                     "Accept"
-                ) { dialog: DialogInterface?, which: Int ->  // The user confirmed, so we can accept the connection.
+                ) { dialog: DialogInterface?, which: Int ->  // L'utilisateur a confirmé, nous pouvons accepter la connexion.
                     Nearby.getConnectionsClient(context)
                         .acceptConnection(endpointId, payloadCallback)
                 }
                 .setNegativeButton(
-                    R.string.cancel
-                ) { dialog: DialogInterface?, which: Int ->  // The user canceled, so we should reject the connection.
+                    android.R.string.cancel
+                ) { dialog: DialogInterface?, which: Int ->  // L'utilisateur a annulé, nous devons rejeter la connexion.
                     Nearby.getConnectionsClient(context).rejectConnection(endpointId)
                 }
-                .setIcon(R.drawable.ic_dialog_alert)
+                .setIcon(android.R.drawable.ic_dialog_alert)
                 .show()
         }
 
@@ -132,30 +163,32 @@ class NearbyService(var context: Context) {
         }
 
         override fun onDisconnected(endpointId: String) {
-            // We've been disconnected from this endpoint. No more data can be
-            // sent or received.
+            // Nous avons été déconnectés de cet endpoint. Aucune donnée ne peut plus
+            // être envoyée ou reçue.
             Log.d("NearbyService", "Disconnected")
             endpointIds -= endpointId
             if(!isHost && onDisconnection != null){
                 onDisconnection?.invoke()
             }
-
         }
     }
 
+    /**
+     * Callback pour la gestion des données reçues.
+     * Traite les messages entrants et les redistribue si l'appareil est hôte.
+     */
     private val payloadCallback : PayloadCallback = object : PayloadCallback() {
         override fun onPayloadReceived(endpointId: String, payload: Payload) {
-            // This always gets the full data of the payload. Is null if it's not a BYTES payload.
+            // Ceci récupère toujours toutes les données du payload. Est null si ce n'est pas un payload BYTES.
             if (payload.getType() == Payload.Type.BYTES) {
                 val receivedBytes = payload.asBytes()
                 Log.d("NearbyService", "Received bytes: " + String(receivedBytes!!))
-                //Toast.makeText(context, "Received bytes: " + String(receivedBytes!!), Toast.LENGTH_SHORT).show()
                 if (onMessageReceived != null) {
                     onMessageReceived!!(receivedBytes)
                 }
-                
+
                 if (isHost){
-                    // Send the received bytes to the other devices
+                    // Envoie les bytes reçus aux autres appareils
                     endpointIds.forEach { otherEndpointId ->
                         if (otherEndpointId != endpointId) {
                             Nearby.getConnectionsClient(context).sendPayload(otherEndpointId, payload)
@@ -166,11 +199,15 @@ class NearbyService(var context: Context) {
         }
 
         override fun onPayloadTransferUpdate(endpointId: String, update: PayloadTransferUpdate) {
-            // Bytes payloads are sent as a single chunk, so you'll receive a SUCCESS update immediately
-            // after the call to onPayloadReceived().
+            // Les payloads de bytes sont envoyés en un seul bloc, vous recevrez donc une mise à jour SUCCESS immédiatement
+            // après l'appel à onPayloadReceived().
         }
     }
 
+    /**
+     * Envoie des données à tous les appareils connectés.
+     * @param payload Les données à envoyer sous forme de ByteArray
+     */
     public fun sendPayload(payload: ByteArray){
         if(endpointIds.isEmpty()){
             Log.d("NearbyService", "No devices connected")
@@ -182,16 +219,27 @@ class NearbyService(var context: Context) {
         }
     }
 
+    /**
+     * Déconnecte tous les endpoints et remet à zéro l'état du service.
+     */
     fun disconnect(){
         Nearby.getConnectionsClient(context).stopAllEndpoints()
         endpointIds = emptySet()
         isHost = false
     }
 
-
-
     companion object{
         private var instance: NearbyService? = null
+
+        /**
+         * Retourne l'instance singleton de NearbyService.
+         * Crée une nouvelle instance si elle n'existe pas encore.
+         *
+         * @param context Le contexte Android à utiliser pour initialiser le service.
+         *               Peut être null si l'instance existe déjà.
+         * @return L'instance de NearbyService
+         * @throws Exception Si context est null et qu'aucune instance n'existe
+         */
         fun get(context: Context? = null): NearbyService {
             if (instance == null) {
                 if(context != null)
