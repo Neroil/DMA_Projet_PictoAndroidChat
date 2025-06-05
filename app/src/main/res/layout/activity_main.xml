@@ -19,16 +19,16 @@
 
     <EditText
         android:id="@+id/username_input"
-        android:hint="@string/username_hint"
         android:layout_width="250dp"
-        android:layout_height="wrap_content"
+        android:layout_height="48dp"
         android:autofillHints="username"
+        android:hint="@string/username_hint"
         android:inputType="text"
-        app:layout_constraintTop_toTopOf="parent"
+        android:textColorHint="#757575"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <Button
         android:id="@+id/host_button"

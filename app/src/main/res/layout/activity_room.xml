@@ -23,7 +23,7 @@
     <EditText
         android:id="@+id/input_message"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
+        android:layout_height="48dp"
         android:autofillHints=""
         android:hint="@string/message_hint"
         android:inputType="text"

@@ -13,7 +13,7 @@
         android:textStyle="bold"
         android:textSize="14sp"
         android:textColor="@color/black"
-        android:text="Sender Name" />
+        android:text="@string/placeholder_sender_name" />
 
     <TextView
         android:id="@+id/tv_content"
@@ -22,7 +22,7 @@
         android:layout_marginTop="4dp"
         android:textSize="16sp"
         android:textColor="@color/black"
-        android:text="Message content goes here" />
+        android:text="@string/placeholder_text_mess" />
 
     <TextView
         android:id="@+id/tv_timestamp"
@@ -32,6 +32,6 @@
         android:layout_gravity="end"
         android:textSize="12sp"
         android:textColor="@color/black"
-        android:text="12:34" />
+        android:text="@string/placeholder_timestamp_mess" />
 
 </LinearLayout>

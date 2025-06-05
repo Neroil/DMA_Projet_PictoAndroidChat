@@ -9,4 +9,8 @@
     <string name="eraser">Eraser</string>
     <string name="username_hint">Username</string>
     <string name="message_hint">Message</string>
+    <string name="placeholder_sender_name">Sender</string>
+    <string name="description_drawing">Sender drawing</string>
+    <string name="placeholder_timestamp_mess">16:26</string>
+    <string name="placeholder_text_mess">content message donc heureux</string>
 </resources>
