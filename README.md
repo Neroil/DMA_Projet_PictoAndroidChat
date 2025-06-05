@@ -1,42 +1,27 @@
 # DMA_Projet_PictoAndroidChat
+> Guillaume Dunant, Edwin Haeffner, Arthur Junod
 
 Le but de ce projet est de faire une application de chat local utilisant Google Nearby.
-## Architecture du projet
+## Projet
+### Page d'acceuil
 
-### Structure MVVM pour les discussions
+La page d'acceuil sera composée :
+- Message d'accueil
+- Champs de text pour le pseudo à utiliser pour la salle de discussion (si celui-ci est laissé vide un nom d'utilisateur aléatoire nous sera donné).
+- Bouton Join pour rejoindre une salle de discussion aux alentour.
+- Bouton Host pour hébérger une salle de discussion.
 
-Idée pour avoir un ordre des messages constants entre utilisateurs -> implémentation d'un mutex de lamport (Optionel si on a du temps à la fin, néanmoins le mentionner si cet ordre est un problème.)
-
-## Layouts
-
-### Page initiale
-
-Message d'accueil 
-Champs de text pour le PSEUDO
-Bouton Join
-Bouton Host
-
-### Page Join
-
-Scan les channels disponnible en utilisant les fonctionnalités de Google Nearby et les affiche dans une liste de rectangles. Chaque élément indique le nom et le nombre de personnes connectées
-
-### Page Host
-
-Indique le nom du channel à créer et la taille de celui-ci (nombre de personnes max)
-
-### Page chat
+### Page salle de discussion
 
 La partie haute de l'écran permet de voir les messages des autres utilisateurs de l'application. 
 
 La partie basse est divisée en un text input et un rectangle de dessins.
 
-L'utilisateur peut changer la taille du trait, épais ou fin. 
+L'utilisateur peut utiliser soit un trait noir pour dessiner soit utiliser la gomme en appuyant sur le bouton actionnable du milieu.
+
+Il peut également effacer tout son dessin avec le bouton clear ou l'envoyer aux autres utilisateurs avec le bouton send.
 
 
-## Librairies dessin
+### Librairies dessin
 
-Toutes les librairies ont les fonctionnalité qui nous intéresse à voir ensuite pour l'export laquelle est la plus simple.
-
-[Drawing-Canvas](https://github.com/Miihir79/DrawingCanvas-Library) exporte les dessins en *arrayList* de *CustomPath*.
-
-[DrawBox](https://android-arsenal.com/details/1/8292) exporte les dessins en *BitMap*.
+Nous avon finalement utiliser la librairie [DrawBox](https://github.com/akshay2211/DrawBox) pour le canva.
