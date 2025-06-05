@@ -3,9 +3,9 @@
 
 Le but de ce projet est de faire une application de chat local utilisant Google Nearby.
 ## Projet
-### Page d'acceuil
+### Page d'accueil
 
-La page d'acceuil sera composée :
+La page d'accueil sera composée :
 - Message d'accueil
 - Champs de text pour le pseudo à utiliser pour la salle de discussion (si celui-ci est laissé vide un nom d'utilisateur aléatoire nous sera donné).
 - Bouton Join pour rejoindre une salle de discussion aux alentour.
