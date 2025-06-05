@@ -1,27 +1,27 @@
 # DMA_Projet_PictoAndroidChat
 > Guillaume Dunant, Edwin Haeffner, Arthur Junod
 
-Le but de ce projet est de faire une application de chat local utilisant Google Nearby.
+Le but de ce projet est de créer une application de chat local utilisant Google Nearby.
 ## Projet
 ### Page d'accueil
 
-La page d'accueil sera composée :
+La page d'accueil est composée de :
 - Message d'accueil
-- Champs de text pour le pseudo à utiliser pour la salle de discussion (si celui-ci est laissé vide un nom d'utilisateur aléatoire nous sera donné).
-- Bouton Join pour rejoindre une salle de discussion aux alentour.
-- Bouton Host pour hébérger une salle de discussion.
+- Champ de texte pour le pseudo à utiliser dans la salle de discussion (si celui-ci est laissé vide, un nom d'utilisateur aléatoire sera généré).
+- Bouton Join pour rejoindre une salle de discussion aux alentours.
+- Bouton Host pour héberger une salle de discussion.
 
 ### Page salle de discussion
 
 La partie haute de l'écran permet de voir les messages des autres utilisateurs de l'application. 
 
-La partie basse est divisée en un text input et un rectangle de dessins.
+La partie basse est divisée en un champ de saisie texte pour les messages et un rectangle de dessin.
 
-L'utilisateur peut utiliser soit un trait noir pour dessiner soit utiliser la gomme en appuyant sur le bouton actionnable du milieu.
+L'utilisateur peut utiliser soit un trait noir pour dessiner, soit utiliser la gomme en appuyant sur le bouton actionnable du milieu.
 
 Il peut également effacer tout son dessin avec le bouton clear ou l'envoyer aux autres utilisateurs avec le bouton send.
 
 
-### Librairies dessin
+### Librairies de dessin
 
-Nous avon finalement utiliser la librairie [DrawBox](https://github.com/akshay2211/DrawBox) pour le canva.
+Nous avons finalement utilisé la librairie [DrawBox](https://github.com/akshay2211/DrawBox) pour le canvas.
